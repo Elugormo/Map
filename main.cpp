@@ -45,45 +45,47 @@ Map::Node::~Node()
 Map::Node& Map::find_position(Map::Node& n ,Key k)
 {
     if(n.pair_obj.first == k)return n;
-    else if(n.pair_obj.first > k)
+    else if(n.pair_obj.first < k)
     {
         if(n.right ==  nullptr)
             return n;
         else
-            return find_position(*n.left,k);
+            return find_position(*n.right,k);
     }
-    else if(n.pair_obj.first < k)
+    else if(n.pair_obj.first > k)
     {
         if(n.left == nullptr)
             return n;
         else
-            return find_position(*n.right,k);
+            return find_position(*n.left,k);
     }
 }
 
 void Map::insert(std::pair<Key,Value> &obj)
-{
+{    
+    Node *n1 = new Node(obj);
     if(this->root == nullptr)
     {   
-        *this->root = obj;
+        std::cout<<"hie"<<'\n';
+       // Node *n1 = new Node(obj);
+        this->root = n1;
+        return;
     }
     else
     {   
         Key k ="Hello";
-        Node& n = find_position(*this->root,k); 
+        Node& n = find_position(*this->root,obj.first); 
         if(n.pair_obj.first == obj.first);
-        else if(n.pair_obj.first > obj.first)
-        {   
-            n.type = 0;//right node
-            *n.right =obj; 
-        }
         else if(n.pair_obj.first < obj.first)
         {   
-            n.type = 1;//left node
-            *n.left = obj;
+            n.type = 0;//right node
+            n.right =n1; 
         }
-        
-
+        else if(n.pair_obj.first > obj.first)
+        {   
+            n.type = 1;//left node
+            n.left = n1;
+        }
     }
 }
 
@@ -91,9 +93,30 @@ void Map::insert(std::pair<Key,Value> &obj)
 
 int main()
 {
-
-
-
+    Map m;
+    std::pair<Key,Value> p1("x",14);
+    std::pair<Key,Value> p2("e",13);
+    std::pair<Key,Value> p3("y",14);
+    std::pair<Key,Value> p4("i",13);
+    std::pair<Key,Value> p5("j",14);
+    std::pair<Key,Value> p6("f",13);
+    std::pair<Key,Value> p7("d",14);
+    std::pair<Key,Value> p8("a",13);
+ 
+ 
+    //std::cout<<"Value::"<<p1.first<<'\n';
+    m.insert(p1);
+    m.insert(p2);
+    m.insert(p3);
+    m.insert(p4);
+    m.insert(p5);
+    m.insert(p6);
+    m.insert(p7);
+    m.insert(p8);
+    
+    std::cout<<m.root->pair_obj.first<<'\n';
+    std::cout<<m.root->left->pair_obj.first<<'\n';
+    
 
     return 0;
 }
