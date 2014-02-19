@@ -42,7 +42,7 @@ Map::Node::~Node()
     delete Map::Node::parent;
 }
 
-Map::Node& find_position(Map::Node& n ,Key k)
+Map::Node& Map::find_position(Map::Node& n ,Key k)
 {
     if(n.pair_obj.first == k)return n;
     else if(n.pair_obj.first > k)
@@ -63,25 +63,28 @@ Map::Node& find_position(Map::Node& n ,Key k)
 
 void Map::insert(std::pair<Key,Value> &obj)
 {
-    if(this->root == NULL)
-    {
+    if(this->root == nullptr)
+    {   
         *this->root = obj;
     }
     else
     {   
-        Node& n = find_position(*this->root,obj.first);
-
+        Key k ="Hello";
+        Node& n = find_position(*this->root,k); 
         if(n.pair_obj.first == obj.first);
         else if(n.pair_obj.first > obj.first)
         {   
+            n.type = 0;//right node
             *n.right =obj; 
         }
         else if(n.pair_obj.first < obj.first)
-        {
+        {   
+            n.type = 1;//left node
             *n.left = obj;
         }
-    }
+        
 
+    }
 }
 
 
