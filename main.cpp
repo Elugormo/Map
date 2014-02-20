@@ -11,7 +11,6 @@ class Map{
         Map();
         ~Map();
         Map(std::initializer_list<std::pair<Key,Value>>);
-        void insert(const std::pair<Key,Value> &obj);
         class Node{
             public:
                 Node* left;
@@ -22,12 +21,16 @@ class Map{
                 Node(const std::pair<Key,Value> &obj);
                 ~Node();
         };
+        void insert(const std::pair<Key,Value> &obj);
         Node* find_position(Node* ,Key k);
         void delete_all_nodes();
         void delete_all_nodes(Node* n);
-        Map(const Map&);
+        Map(const Map&);//copy ctor
         void copy_map(const Node*n);
-        Map(Map&&);
+        Map(Map&&);//move ctor
+        Map& operator=(const Map&);//assignment operator
+        Map& operator=(Map&&);
+    private:
         Node *root;
         Node *begin;
         Node *end;
@@ -45,9 +48,9 @@ void Map::delete_all_nodes()
     this->delete_all_nodes(this->root);
 }
 
-void Map::delete_all_nodes(Node *n)
+    void Map::delete_all_nodes(Node *n)
 {   if(n == nullptr)
-        return;
+    return;
     delete_all_nodes(n->left);
     delete_all_nodes(n->right);
     delete n;
@@ -78,10 +81,33 @@ void Map::copy_map(const Node*n)
     copy_map(n->left);
     copy_map(n->right);
 }
-
-Map::Map(Map&& copy):root(copy.root),begin(nullptr),end(nullptr)
+//Move ctor
+Map::Map(Map&& copy):root(copy.root),begin(copy.begin),end(copy.end)
 {
     copy.root = nullptr;
+}
+//Assignment operator
+Map& Map::operator=(const Map& other) 
+{
+    if(this!=&other)
+    {
+        this->delete_all_nodes(this->root);
+        copy_map(other.root);
+    }
+    return *this;
+}
+
+//Move assignment operator
+Map& Map::operator=(Map&&other)
+{
+    if(this!=&other)
+    {
+        this->delete_all_nodes(this->root);
+        this->root = other.root;
+        this->begin = other.begin;
+        this->end = other.end;
+        other.root=other.begin=other.end=nullptr; 
+    }
 }
 
 Map::Node* Map::find_position(Map::Node* n ,Key k)
@@ -140,7 +166,8 @@ void Map::insert(const std::pair<Key,Value> &obj)
 int main()
 {
     Map m{{"n",1},{"i",2},{"k",3},{"h",4},{"i",5},{"l",6}};  
-    Map m1(std::move(m));
-    
+    //Map m1(std::move(m));
+    Map m1 = std::move(m);
+
     return 0;
 }
