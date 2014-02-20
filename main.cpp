@@ -11,7 +11,7 @@ class Map{
         Map();
         ~Map();
         Map(std::initializer_list<std::pair<Key,Value>>);
-        void insert(std::pair<Key,Value> &obj);
+        void insert(const std::pair<Key,Value> &obj);
         class Node{
             public:
                 Node* left;
@@ -19,12 +19,15 @@ class Map{
                 Node* parent;
                 short type;//right or left child
                 std::pair<Key,Value> pair_obj;
-                Node(std::pair<Key,Value> &obj);
+                Node(const std::pair<Key,Value> &obj);
                 ~Node();
         };
         Node* find_position(Node* ,Key k);
         void delete_all_nodes();
         void delete_all_nodes(Node* n);
+        Map(const Map&);
+        void copy_map(const Node*n);
+        Map(Map&&);
         Node *root;
         Node *begin;
         Node *end;
@@ -50,7 +53,7 @@ void Map::delete_all_nodes(Node *n)
     delete n;
 }
 
-Map::Node::Node(std::pair<Key,Value> &obj):left(nullptr),right(nullptr),parent(nullptr),type(0),pair_obj(obj){}
+Map::Node::Node(const std::pair<Key,Value> &obj):left(nullptr),right(nullptr),parent(nullptr),type(0),pair_obj(obj){}
 
 //I dont need to write the node destructor;
 Map::Node::~Node(){}
@@ -62,7 +65,24 @@ Map::Map(std::initializer_list<std::pair<Key,Value>> list):root(nullptr),begin(n
         this->insert(i);
     }
 }
+//copy constructor
+Map::Map(const Map& copy):root(nullptr),begin(nullptr),end(nullptr)
+{
+    copy_map(copy.root);
+}
+//copy constructor helper function.
+void Map::copy_map(const Node*n)
+{
+    if(n == nullptr)return;
+    this->insert(n->pair_obj); 
+    copy_map(n->left);
+    copy_map(n->right);
+}
 
+Map::Map(Map&& copy):root(copy.root),begin(nullptr),end(nullptr)
+{
+    copy.root = nullptr;
+}
 
 Map::Node* Map::find_position(Map::Node* n ,Key k)
 {
@@ -85,7 +105,7 @@ Map::Node* Map::find_position(Map::Node* n ,Key k)
 
 }
 
-void Map::insert(std::pair<Key,Value> &obj)
+void Map::insert(const std::pair<Key,Value> &obj)
 {    
     //Node *n1 = new Node(obj);
     if(this->root == nullptr)
@@ -117,10 +137,10 @@ void Map::insert(std::pair<Key,Value> &obj)
     }
 }
 
-
-
 int main()
 {
     Map m{{"n",1},{"i",2},{"k",3},{"h",4},{"i",5},{"l",6}};  
+    Map m1(std::move(m));
+    
     return 0;
 }
