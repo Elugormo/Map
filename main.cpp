@@ -17,10 +17,12 @@ class Map{
         Map(std::initializer_list<std::pair<Key,Value>>);
         class Node{
             public:
-                Node* left;
-                Node* right;
-                Node* parent;
-                short type;//right or left child
+                Node* left = nullptr;
+                Node* right = nullptr;
+                Node* parent = nullptr;
+                Node* next_iter = nullptr;
+                Node* prev_iter = nullptr;
+                char type = 'e';//right or left child
                 value_type* pair_obj;
                 Node(const value_type &obj);
                 ~Node();
@@ -44,20 +46,19 @@ class Map{
         Map& operator=(const Map&);//assignment operator
         Map& operator=(Map&&);
     private:
-        Node *root;
-        Node *begin;
-        Node *end;
+        Node *root = nullptr;
+        Node *begin = nullptr;
+        Node *end = nullptr;
+        std::size_t length = 0;
 };
 
-Map::Map():root(nullptr),begin(nullptr),end(nullptr){}
+Map::Map(){}
 
 Map::~Map()
 {
     this->delete_all_nodes(this->root);
-   // delete root;
     delete begin;
     delete end;
-    //delete this;
 }
 
 void Map::delete_all_nodes(Node *n)
@@ -69,12 +70,12 @@ void Map::delete_all_nodes(Node *n)
     delete n;
 }
 //node ctor
-Map::Node::Node(const value_type &obj):left(nullptr),right(nullptr),parent(nullptr),type(0),pair_obj(new value_type(obj)){}
+Map::Node::Node(const value_type &obj):pair_obj(new value_type(obj)){}
 
 //I dont need to write the node destructor;
 Map::Node::~Node(){}
 //add const key 
-Map::Map(std::initializer_list<std::pair<Key,Value>> list):root(nullptr),begin(nullptr),end(nullptr)
+Map::Map(std::initializer_list<std::pair<Key,Value>> list)
 {
     for(auto i :list)
     {      
@@ -82,7 +83,7 @@ Map::Map(std::initializer_list<std::pair<Key,Value>> list):root(nullptr),begin(n
     }
 }
 //copy constructor
-Map::Map(const Map& copy):root(nullptr),begin(nullptr),end(nullptr)
+Map::Map(const Map& copy)
 {
     copy_map(copy.root);
 }
@@ -134,6 +135,12 @@ Map::Iterator::Iterator(Iterator &&copy):iter_node(copy.iter_node)
     copy.iter_node =nullptr; 
 }
 */
+
+
+//Map::Node* find_iterator(Map::Node)
+
+
+
 Map::Node* Map::find_position(Map::Node* n ,Key k)
 {
     assert(n!=nullptr);
@@ -156,37 +163,62 @@ Map::Node* Map::find_position(Map::Node* n ,Key k)
 }
 
 void Map::insert(const_value_type &obj)
-{    
-    Node *n1 = new Node(obj);
+{   
+
+    Node *new_node = new Node(obj);
+    ++this->length;
     if(this->root == nullptr)
-    {   //Node *n1 = new Node(obj); 
-        this->root = n1;
+    {   //root added.
+        Node *begin = new Node(obj);
+        Node *end = new Node(obj);
+        this->root = new_node;
+        new_node->type = 'h';
+        new_node->next_iter = begin;
+        new_node->prev_iter = end;
         return;
     }
     else
     {   
         Node* n = find_position(this->root,obj.first); 
         if(n->pair_obj->first == obj.first)
-        {   
-            {//create a delete node function.
-            delete n1->pair_obj;
-            delete n1;
+        {  //if duplicate 
+            {//create a delete node function for this 
+            --this->length;
+            delete new_node->pair_obj;
+            delete new_node;
             }
             return;
         }
         else if(n->pair_obj->first < obj.first)
-        { 
+        { //add to right
             //Node *n1 = new Node(obj);
-            n->type = 0;//right node
-            n->right =n1; 
-            n1->parent = n;
+            //n->type = 'r';//right node
+            n->right =new_node; 
+            new_node->parent = n;
+            new_node->type= 'r';
+            new_node->next_iter = n->next_iter;
+            n->next_iter = new_node;
         }
         else if(n->pair_obj->first > obj.first)
-        {   
+        {   //add to left
             //Node *n1 = new Node(obj);
-            n->type = 1;//left node
-            n->left = n1;
-            n1->parent = n;
+            //n->type = 'l';//left node
+            n->left = new_node;
+            new_node->parent = n;
+            new_node->type = 'l';
+#if 1
+            Node* traverse = new_node->parent;
+            new_node->next_iter = n;
+            while(traverse->type == 'r')
+            {
+                traverse = traverse->parent;
+            }
+            if(traverse->pair_obj->first < new_node->pair_obj->first)
+            {
+            traverse->next_iter = new_node;
+
+            }
+#endif
         }
     }
 }
