@@ -207,16 +207,24 @@ void Map::insert(const_value_type &obj)
             new_node->parent = n;
             new_node->type = 'l';
 #if 1
-            Node* traverse = new_node->parent;
             new_node->next_iter = n;
-            while(traverse->type == 'r')
+            Node* traverse = new_node;
+            //new_node->next_iter = n;
+            do
             {
                 traverse = traverse->parent;
+            }while(traverse->type == 'l');
+            if(traverse->type == 'h')
+            {       
+                //do notthing
             }
-            if(traverse->pair_obj->first < new_node->pair_obj->first)
+            else if(traverse->type == 'r')
             {
-            traverse->next_iter = new_node;
-
+                traverse = traverse->parent;
+                if(traverse->pair_obj->first < new_node->pair_obj->first)
+                {
+                    traverse->next_iter = new_node;
+                }
             }
 #endif
         }
@@ -225,7 +233,7 @@ void Map::insert(const_value_type &obj)
 
 int main()
 {
-    Map m{{"n",1},{"i",2},{"k",3},{"h",4},{"i",5},{"l",6}};  
+    Map m{{"50",50},{"20",20},{"10",10},{"30",30},{"25",25},{"40",40},{"23",23},{"27",27},{"70",70},{"65",65},{"66",66},{"67",67},{"63",63}};  
     //Map m1(std::move(m));
     Map m1 = m;
 
