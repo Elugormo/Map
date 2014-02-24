@@ -173,8 +173,9 @@ void Map::insert(const_value_type &obj)
         Node *end = new Node(obj);
         this->root = new_node;
         new_node->type = 'h';
-        new_node->next_iter = begin;
-        new_node->prev_iter = end;
+        //next_iter point to begin and end node. with type = e.
+        new_node->next_iter = end;
+        new_node->prev_iter = begin;
         return;
     }
     else
@@ -196,8 +197,15 @@ void Map::insert(const_value_type &obj)
             n->right =new_node; 
             new_node->parent = n;
             new_node->type= 'r';
+           //code to set the prev_iter.
+            new_node->prev_iter = n;
+            Node *temp = n->next_iter;
+            temp->prev_iter = new_node;
+
+            //code to set the next_iter.
             new_node->next_iter = n->next_iter;
             n->next_iter = new_node;
+            
         }
         else if(n->pair_obj->first > obj.first)
         {   //add to left
@@ -207,6 +215,7 @@ void Map::insert(const_value_type &obj)
             new_node->parent = n;
             new_node->type = 'l';
 #if 1
+            //code to set the next_iter.
             new_node->next_iter = n;
             Node* traverse = new_node;
             //new_node->next_iter = n;
@@ -215,7 +224,9 @@ void Map::insert(const_value_type &obj)
                 traverse = traverse->parent;
             }while(traverse->type == 'l');
             if(traverse->type == 'h')
-            {       
+            {    
+                Node *n = new_node->parent->prev_iter ;//begin->next_iter = new_node;//not sure if correct..?   
+                n->next_iter = new_node;
                 //do notthing
             }
             else if(traverse->type == 'r')
@@ -226,16 +237,22 @@ void Map::insert(const_value_type &obj)
                     traverse->next_iter = new_node;
                 }
             }
+
+            //code to set the prev_iter
+            new_node->prev_iter = n->prev_iter;
+            n->prev_iter = new_node;
 #endif
         }
     }
+    //traverse all the way left to set the begin node.
 }
 
 int main()
 {
     Map m{{"50",50},{"20",20},{"10",10},{"30",30},{"25",25},{"40",40},{"23",23},{"27",27},{"70",70},{"65",65},{"66",66},{"67",67},{"63",63}};  
+    Map m1 {{"50",50},{"65",65}};
     //Map m1(std::move(m));
-    Map m1 = m;
+    //Map m1 = m;
 
     return 0;
 }
