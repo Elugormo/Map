@@ -23,7 +23,8 @@ class Map{
                 Node* next_iter = nullptr;
                 Node* prev_iter = nullptr;
                 char type = 'e';//right or left child
-                value_type* pair_obj;
+                value_type* pair_obj= nullptr;
+                Node();
                 Node(const value_type &obj);
                 ~Node();
         };
@@ -31,13 +32,20 @@ class Map{
             public:
             Node *iter_node;
             Iterator(Node *n);//ctor
+            /*
             Iterator(const Iterator& copy);//copy ctor
             Iterator(Iterator &&copy);//move ctor
             Iterator& operator= (const Iterator&);//copy assignment operator.
             Iterator& operator=(Iterator&&);//Move Assignment operator.
             ~Iterator();
+            */
+            Iterator& operator++();
+            Iterator operator++(int);
+            Iterator& operator--();
+            Iterator operator--(int);
+            value_type& operator*() const;
         };
-        void insert(const_value_type &obj);
+        Iterator insert(const_value_type &obj);
         Node* find_position(Node* ,Key k);
         void delete_all_nodes(Node* n);
         Map(const Map&);//copy ctor
@@ -45,10 +53,13 @@ class Map{
         Map(Map&&);//move ctor
         Map& operator=(const Map&);//assignment operator
         Map& operator=(Map&&);
+        Iterator begin();
+        Iterator end();
     private:
         Node *root = nullptr;
-        Node *begin = nullptr;
-        Node *end = nullptr;
+        Node *head = new Node();
+        Node *tail = new Node();
+
         std::size_t length = 0;
 };
 
@@ -57,8 +68,8 @@ Map::Map(){}
 Map::~Map()
 {
     this->delete_all_nodes(this->root);
-    delete begin;
-    delete end;
+    delete head;
+    delete tail;
 }
 
 void Map::delete_all_nodes(Node *n)
@@ -69,8 +80,9 @@ void Map::delete_all_nodes(Node *n)
     delete n->pair_obj;
     delete n;
 }
+Map::Node::Node():pair_obj(new value_type()){}
 //node ctor
-Map::Node::Node(const value_type &obj):pair_obj(new value_type(obj)){}
+Map::Node::Node(const_value_type &obj):pair_obj(new value_type(obj)){}
 
 //I dont need to write the node destructor;
 Map::Node::~Node(){}
@@ -96,7 +108,7 @@ void Map::copy_map(Node*n)
     copy_map(n->right);
 }
 //Move ctor
-Map::Map(Map&& copy):root(copy.root),begin(copy.begin),end(copy.end)
+Map::Map(Map&& copy):root(copy.root),head(copy.head),tail(copy.tail)
 {
     copy.root = nullptr;
 }
@@ -118,15 +130,16 @@ Map& Map::operator=(Map&&other)
     {
         this->delete_all_nodes(this->root);
         this->root = other.root;
-        this->begin = other.begin;
-        this->end = other.end;
-        other.root=other.begin=other.end=nullptr; 
+        this->head = other.head;
+        this->tail = other.tail;
+        other.root=other.tail=nullptr; 
     }
     return *this;
 }
-/*
+
 //Iter ctor
 Map::Iterator::Iterator(Node *iter_node):iter_node(iter_node){}
+/*
 //copy ctor
 Map::Iterator::Iterator(const Iterator& copy):iter_node(new Node(*copy.iter_node->pair_obj)){}
 //move ctor
@@ -134,12 +147,51 @@ Map::Iterator::Iterator(Iterator &&copy):iter_node(copy.iter_node)
 {
     copy.iter_node =nullptr; 
 }
+
 */
 
+Map::Iterator& Map::Iterator::operator++()
+{
+    this->iter_node = this->iter_node->next_iter;
+    return *this;
+}
+
+Map::Iterator Map::Iterator::operator++(int)
+{
+    Iterator temp(*this);
+    ++(*this);    
+    return temp;
+}
+
+
+Map::Iterator& Map::Iterator::operator--()
+{
+    this->iter_node = this->iter_node->prev_iter;
+    return *this;
+}
+
+Map::Iterator Map::Iterator::operator--(int)
+{
+    Iterator temp(*this);
+    --(*this);    
+    return temp;
+}
 
 //Map::Node* find_iterator(Map::Node)
+Map::Iterator Map::begin()
+{
+    return Iterator(this->head->next_iter);
+}
 
+Map::Iterator Map::end()
+{
+    return Iterator(this->tail);
+}
 
+Map::value_type& Map::Iterator::operator*() const
+{
+    return *(this->iter_node->pair_obj);
+}
 
 Map::Node* Map::find_position(Map::Node* n ,Key k)
 {
@@ -162,21 +214,21 @@ Map::Node* Map::find_position(Map::Node* n ,Key k)
     return nullptr;
 }
 
-void Map::insert(const_value_type &obj)
+Map::Iterator Map::insert(const_value_type &obj)
 {   
-
     Node *new_node = new Node(obj);
     ++this->length;
     if(this->root == nullptr)
     {   //root added.
-        Node *begin = new Node(obj);
-        Node *end = new Node(obj);
+        //Node *begin = new Node(obj);
+        //Node *end = new Node(obj);
         this->root = new_node;
         new_node->type = 'h';
         //next_iter point to begin and end node. with type = e.
-        new_node->next_iter = end;
-        new_node->prev_iter = begin;
-        return;
+        
+        new_node->next_iter = this->tail;
+        new_node->prev_iter = this->head;
+        return Iterator(new_node);
     }
     else
     {   
@@ -188,7 +240,7 @@ void Map::insert(const_value_type &obj)
             delete new_node->pair_obj;
             delete new_node;
             }
-            return;
+            return Iterator(n);
         }
         else if(n->pair_obj->first < obj.first)
         { //add to right
@@ -205,6 +257,7 @@ void Map::insert(const_value_type &obj)
             //code to set the next_iter.
             new_node->next_iter = n->next_iter;
             n->next_iter = new_node;
+            return Iterator(new_node);
             
         }
         else if(n->pair_obj->first > obj.first)
@@ -241,7 +294,8 @@ void Map::insert(const_value_type &obj)
             //code to set the prev_iter
             new_node->prev_iter = n->prev_iter;
             n->prev_iter = new_node;
-#endif
+            return Iterator(new_node);
+#endif      
         }
     }
     //traverse all the way left to set the begin node.
@@ -250,6 +304,17 @@ void Map::insert(const_value_type &obj)
 int main()
 {
     Map m{{"50",50},{"20",20},{"10",10},{"30",30},{"25",25},{"40",40},{"23",23},{"27",27},{"70",70},{"65",65},{"66",66},{"67",67},{"63",63}};  
+    using Key = std::string;
+    using Value = int;
+
+    using type = std::pair<const Key, Value>;
+    type a = *(++m.begin());
+    std::cout<<"Iter::"<<a.first;
+    //a++;
+    std::cout<<"Iter::"<<a.first;
+
+
+
     Map m1 {{"50",50},{"65",65}};
     //Map m1(std::move(m));
     //Map m1 = m;
