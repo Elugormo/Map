@@ -68,6 +68,8 @@ Map::Map(){}
 Map::~Map()
 {
     this->delete_all_nodes(this->root);
+    delete head->pair_obj;
+    delete tail->pair_obj;
     delete head;
     delete tail;
 }
@@ -312,9 +314,6 @@ int main()
     std::cout<<"Iter::"<<a.first;
     //a++;
     std::cout<<"Iter::"<<a.first;
-
-
-
     Map m1 {{"50",50},{"65",65}};
     //Map m1(std::move(m));
     //Map m1 = m;
