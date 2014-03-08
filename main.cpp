@@ -14,6 +14,7 @@
 //using Key = std::string;
 //using const_Key = const std::string;
 //using Value =int;
+
 class Map{
     using Key = std::string;
     using const_Key = const std::string;
@@ -114,6 +115,8 @@ class Map{
     Value& operator[](const_Key&); 
     bool operator==(const Map&)const;
     bool operator!=(const Map&)const;
+    void print_tree();
+    void print_tree_h(Node *n);
     private:
     Node *root = nullptr;
     Node *head = new Node();
@@ -126,16 +129,11 @@ Map::Map(){}
 
 Map::~Map()
 {
-    std::cout<<"DEstructor::\n";
-    // assert(this->root!=nullptr);
+    this->print_tree();
     if(this->root!=nullptr)
     {
         this->delete_all_nodes(this->root);
     }
-    /*delete head->pair_obj;
-      delete tail->pair_obj;
-      delete head;
-      delete tail;*/ 
     assert(this->head!=nullptr);
     delete_node(this->head);
     assert(this->tail!=nullptr);
@@ -145,30 +143,29 @@ Map::~Map()
 
 void Map::delete_node(Node*n)
 {
-    assert(n != nullptr);
-    //if(n->pair_obj!= nullptr)
-    //std::cout<<n->pair_obj->first<<" ";
-    if(n->type == 'h')return;
-    n->left = nullptr;
-    n->right = nullptr;
-    n->parent = nullptr;
-    n->next_iter = nullptr;
-    n->prev_iter = nullptr;
+    //assert(n != nullptr);
+    if(n == nullptr)
+    {
+        return;
+    }
+    if(n->pair_obj!= nullptr)return;
+    if(n->type == 'h')
+    {
+        this->head->next_iter=this->tail;
+        this->tail->prev_iter=this->head;
+    } 
+    if(n!=nullptr)
     delete n->pair_obj;
     delete n;
     n = nullptr;
 }
 void Map::delete_all_nodes(Node *n)
-{   //std::cout<<"delete_all_node";
+{   
     if(n == nullptr)
         return;
     delete_all_nodes(n->left);
     delete_all_nodes(n->right);
     delete_node(n);
-    /*
-       delete n->pair_obj;
-       delete n;
-       */
 }
 Map::Node::Node():pair_obj(new value_type()){}
 //node ctor
@@ -419,7 +416,7 @@ std::size_t Map::size() const
 
 bool Map::empty() const
 {
-    return(this->size() == 0 ?true:false);
+    return(this->root == nullptr ?true:false);
 }
 
 
@@ -596,8 +593,7 @@ Map::Iterator Map::insert(const_value_type &obj)
 #if 1
             //code to set the next_iter.
             new_node->next_iter = n;
-            Node* traverse = new_node;
-            //new_node->next_iter = n;
+            Node* traverse = new_node; 
             do
             {
                 traverse = traverse->parent;
@@ -638,109 +634,117 @@ void Map::remove(const_Key& key)
         erase(i);
 }
 
+void Map::print_tree()
+{
+print_tree_h(this->root);
+std::cout<<std::endl;
+}
+
+void Map::print_tree_h(Node *n)
+{
+    if(n == nullptr)return;
+    print_tree_h(n->left);
+    std::cout<<n->pair_obj->first<<n->type<<" \n";
+    print_tree_h(n->right);
+}
 void Map::erase(Iterator i)
 {
-    //Node* parent = i.iter_node->parent;
-    if(i.iter_node==this->head)
-        return;
     assert(i.iter_node!=this->tail);
     Node* parent = i.iter_node->parent;
-   /*
-    if(i.iter_node == this->head->next_iter)
-    {
-        std::cout<<"begin element";
-       this->head->next_iter = i.iter_node ->next_iter;
-        if(i.iter_node->type == 'l')i.iter_node->parent->left = nullptr;
-        if(i.iter_node->type == 'r')i.iter_node->parent ->right= nullptr;
-        i.iter_node->next_iter->prev_iter = this->head;
-        return;
-    }
-    else if(i.iter_node == this->tail->prev_iter)
-    {
-        std::cout<<"last element";
-
-        this->tail->prev_iter = i.iter_node ->prev_iter;
-        if(i.iter_node->type == 'l')i.iter_node->parent->left = nullptr;
-        if(i.iter_node->type == 'r')i.iter_node->parent ->right= nullptr;
-        i.iter_node->prev_iter->next_iter = this->tail;
-        return;
-    }
-    */
-    //Node* parent = i.iter_node->parent;
     if(i.iter_node->left == nullptr && i.iter_node->right == nullptr)//0 child
     {
+        std::cout<<"zero child";
         if(i.iter_node->type == 'l')
-        {   assert(parent!=nullptr);
+        {   
+            assert(parent!=nullptr);
+            i.iter_node->parent = nullptr;
             parent->left = nullptr;
-            parent->right = nullptr;
+            std::cout<<"end";
+
         }
         else if(i.iter_node->type == 'r')
-        {   assert(parent!=nullptr);
-
+        {  
+            assert(parent!=nullptr);
+            i.iter_node->parent = nullptr;
             parent->right = nullptr;
-            parent->left = nullptr;
+            
         }
         else if(i.iter_node->type == 'h')
         {
             Node *n = this->root;
             this->root = nullptr;
             delete_node(n);
-            return;
-            /*
-            this->head->next_iter = this->tail;
-            this->tail->prev_iter = this->head;
-            //this->root = nullptr;
-            */
+            --this->length;
+            return; 
         }
-        //set_pointer_after_delete(i);
     }
     else if(i.iter_node->left == nullptr || i.iter_node->right == nullptr)//1 child
     {      
+        std::cout<<"1 child"<<'\n';
         if(i.iter_node->type == 'l' && i.iter_node->left == nullptr)
         {   
+            std::cout<<"Case1"<<'\n';   
             assert(parent!=nullptr);
             parent->left = i.iter_node->right;
+            i.iter_node->right->parent = parent;
+            i.iter_node->right->type = 'l';
         }
         else if(i.iter_node->type == 'l' && i.iter_node->right == nullptr)
         {   
+            std::cout<<"Case2"<<'\n';   
             assert(parent!=nullptr);
             parent->left = i.iter_node->left;
+            i.iter_node->left->parent = parent;
+            i.iter_node->left->type = 'l';
+            std::cout<<"endhere"<<'\n';
         }
         else if(i.iter_node->type == 'r' && i.iter_node->left == nullptr)
-        {   assert(parent!=nullptr);
-
+        {   
+            std::cout<<"Case3"<<'\n';   
+            assert(parent!=nullptr);
             parent->right = i.iter_node->right;
+            i.iter_node->right->parent = parent;
+            i.iter_node->right->type = 'r';
         }
         else if(i.iter_node->type == 'r' && i.iter_node->right == nullptr)
-        {   assert(parent!=nullptr);
+        {   
+            std::cout<<"Case4"<<'\n';   
+            assert(parent!=nullptr);
             parent->right = i.iter_node->left;
+              i.iter_node->left->parent = parent;  
+            i.iter_node->left->type = 'r';
+
         }
         else if(i.iter_node->type == 'h' && i.iter_node->left == nullptr)
-        {
-            this->root = i.iter_node->right;
-            i.iter_node->type = 'h';
-        }
+        {   
+            std::cout<<"Case5"<<'\n'; 
+            this->root->right->type ='h';
+            Node *temp = i.iter_node->right;
+            this->root = temp;
+         }
         else if(i.iter_node->type == 'h' && i.iter_node->right == nullptr)
         {
-            this->root = i.iter_node->left;
-            i.iter_node->type = 'h';
+            std::cout<<"Case6"<<'\n';
+            this->root->left->type ='h';
+            Node *temp = i.iter_node->left;
+            this->root = temp;
         }
     }
     else if(i.iter_node->left != nullptr && i.iter_node->right != nullptr)//two child
     {   
+        std::cout<<"2 child" ;  
         value_type *temp = i.iter_node->pair_obj;
-        //assert(i.iter_node->prev_iter!=this->head);
-        i.iter_node->pair_obj = i.iter_node->prev_iter->pair_obj;
-        i.iter_node->prev_iter->pair_obj = nullptr;
-        delete temp; 
-        //std::cout<<"Next Iterator for ::"<<i.iter_node->prev_iter->pair_obj->first<<'\n';
-        erase(i.iter_node->prev_iter);
+        i.iter_node->pair_obj = i.iter_node->next_iter->pair_obj;
+        i.iter_node->next_iter->pair_obj = temp;
+        erase(i.iter_node->next_iter);
         return;
     }
     set_pointer_after_delete(i);
 }
 void Map::set_pointer_after_delete(Iterator i)
 {   
+    std::cout<<"set pointer";
+    std::cout<<i.iter_node->pair_obj->first;
     --this->length; 
     assert(i.iter_node!=this->head);
     assert(i.iter_node!=this->tail);
@@ -753,150 +757,84 @@ void Map::set_pointer_after_delete(Iterator i)
     next->prev_iter = current->prev_iter;
     delete_node(i.iter_node);
 }
+
 void stress(int stress_size) {
     auto seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine gen(seed);
-    std::uniform_int_distribution<unsigned int> dist(10, 99);
-    Map m; 
+    std::uniform_int_distribution<unsigned int> dist(0, 122223);
+
+    Map m;
+
     for(int i = 0; i < stress_size; ++i) {
         auto g = dist(gen);
-        std::ostringstream convert;
-        convert<<g;
-        std::string s = convert.str();
-        m.insert({s, g});
-    }   
-   int num_erases = gen() % m.size();
-   //std::cout<<"NUM erases:: "<<num_erases;
+        m.insert({std::to_string(g), g});
+    }
+    m.print_tree();
+    int num_erases = gen() % m.size();
     for(int i = 0; i < num_erases; ++i) {
         //select a random element
         int choice = gen() % m.size();
-        //std::cout<<"Choice = "<<choice<<'\n';
-        auto iter = std::begin(m); 
+        auto iter = std::begin(m);
         for (int j = 0; j < choice; ++j) {
-            ++iter; 
-        } 
-    m.erase(iter);
-    }  
+           
+            ++iter;
+        }
+
+        m.erase(iter);
+        auto g = dist(gen);
+        m.insert({std::to_string(g), g});
+        m.print_tree();
+    }
+        
+        for(int i = 0 ;i < 100 ;i++)
+        {
+            auto g = dist(gen);
+            m[std::to_string(g)] = g;
+        }
+        m.print_tree();
 }
 
-int main(int argc,char **argv)
+int main()
 {
-   
+#if 0
     Map m{{"50",1},{"20",2},{"10",3},{"30",4},{"25",5},{"40",6},{"23",7},{"27",27},{"70",7},{"65",6},{"66",6},{"67",7},{"63",3}};  
-  /*  
-        Map m1{{"50",50},{"20",20},{"30",30},{"99",1}};
-      // Map m2{{"20",20},{"50",50}};
-
-*/
-/*
-       Map m = {{"43",43},{"83",83},{"13",13},{"39",39}};
-       m.remove("39");
-       m.remove("13");
-        //m.remove("25");
-       auto i = m.rbegin();
-       auto j = m.rend();
-       auto x = m.begin();
-       auto y = m.end();
-       for(;;)
-       {  
-       if(i == j)break;
-       std::cout<<(*i).first<<"  "<<(*i).second<<" "<<(*x).first<<" "<<(*x).second<<'\n';
-       i++;
-       x++;
-       if(i != j)continue;
-       }
-       std::cout<<"SIze::"<<m.size()<<'\n';
-
-*/
-    stress(234533);
-    //access_by_key();
-    //count_words();
-    /*
-       using Key = std::string;
-       using Value = int;
-
-       using type = std::pair<const Key, Value>;
-    //type a = *(++m.begin());
-    //std::cout<<"Iter::"<<a.first;
-    //a++;
-    //std::cout<<"Iter::"<<a.first;
-    //Map m1 {{"50",50},{"65",65}};
-    //Map m1(std::move(m));
-    //Map m1 = m;
-    m1["99"] = 100;
-    //m1["65"];
-    m1["65"] = 143;
-    m1["15"] = 199;
-
-    auto i = m1.rbegin();
-    auto j = m1.rend();
-    for(;;)
-    {  
-    if(i == j)break;
-    std::cout<<(*i).first<<"  "<<(*i).second<<'\n';
-    i++;
-    if(i != j)continue;
-    }
-    std::cout<<"SIze::"<<m1.size()<<'\n';
-    /*
-    if(m1 != m2)
+    
+    int count = 14;
+    m.remove("20");
+    auto i = m.begin();
+    std::cout<<"\nIterator Printing::\n";
+    while(1)
     {
-    std::cout<<"Map Are Not Equal\n";
+        --count;
+        if(count == 0)break;
+        std::cout<<(*i).first<<" ";
+        i++;
     }
-    else
+    std::cout<<"\nRecursive Printitng::\n";
+    m.print_tree();
+    std::cout<<"20 removed";
+    m.remove("23");
+    m.remove("25");
+    m.remove("27");
+    m.remove("30");
+    m.remove("40");
+    m.remove("50");
+    m.remove("65");
+    //std::cout<<"lllll";
+    i = m.begin();
+    std::cout<<"\nIterator Printing::\n";
+    while(1)
     {
-    std::cout<<"Maps Are Equal\n";
+        --count;
+        if(count == 0)break;
+        std::cout<<(*i).first<<"\n ";
+        if(i == m.end())break;
+        i++;
     }
-    //auto k = m.find("a");
-    //std::cout<<"Find"<<(*k).second<<'\n';
-    //std::cout<<"Value at"<<m.at("a")<<'\n';
-
-    /*
-    m1.remove("50");
-    //m1.insert({"22",22});
-    //m1.remove("50");
-
-    std::cout<<"After removing 20\n";
-    auto i = m1.rbegin();
-    auto j = m1.rend();
-    for(;;)
-    {   
-    std::cout<<(*i).first<<" ";
-    i++;
-    if(i == j)break;
-    if(i != j)continue;
-    }
-    std::cout<<"SIze::"<<m1.size()<<'\n';
-    //std::cout<<"Root is::"<<m.root
-
-
-#if 0 
-m.remove("30");
-std::cout<<"After removing 66\n";
-i = m.rbegin();
-j = m.rend();
-for(;;)
-{   
-std::cout<<(*i).first<<'\n';
-i++;
-if(i == j)break;
-if(i != j)continue;
-}
-std::cout<<"SIze::"<<m.size()<<'\n';
+    std::cout<<"\nRecursive Printitng::\n";
+    m.print_tree();
 #endif
-    /*Map m1{{"40",40}};
-    //m1.insert({{"30"},{30}});
-    //Map::Iteratot j;
-    i = m1.begin();
-    j = m1.end();
-    for(;;)
-    {   
-    std::cout<<(*i).first<<'\n';
-    i++;
-    if(i == j)break;
-    if(i != j)continue;
-    }
-
-*/
+    stress(5);
+    //access_by_key();
     return 0;
     }
