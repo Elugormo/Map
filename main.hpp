@@ -216,7 +216,7 @@ Map<T,H>::Map(Map&& copy):root(copy.root),head(copy.head),tail(copy.tail)
 template<typename T,typename H>
 Map<T,H>& Map<T,H>::operator=(const Map<T,H>& other) 
 {   
-    std::cout<<"Call"<<'\n';
+    //std::cout<<"Call"<<'\n';
     if(this!=&other)
     {
         this->delete_all_nodes(this->root);
@@ -233,9 +233,11 @@ Map<T,H>& Map<T,H>::operator=(Map<T,H>&&other)
     {
         this->delete_all_nodes(this->root);
         this->root = other.root;
-        this->head = other.head;
-        this->tail = other.tail;
-        other.root=other.tail=nullptr; 
+        this->head->next_iter = other.head->next_iter;
+        this->tail->prev_iter = other.tail->prev_iter;
+        other.root=nullptr; 
+        other.head->next_iter = nullptr;
+        other.tail->prev_iter = nullptr;
     }
     return *this;
 }
@@ -252,9 +254,6 @@ Map<T,H>::ConstIterator::ConstIterator(const Iterator& other):iter_node(other.it
 //reverse Iterator ctor
 template<typename T,typename H>
 Map<T,H>::ReverseIterator::ReverseIterator(Node*iter_node):iter_node(iter_node){}
-
-
-
 /*
 //copy ctor
 Map::Iterator::Iterator(const Iterator& copy):iter_node(new Node(*copy.iter_node->pair_obj)){}
@@ -512,7 +511,23 @@ typename Map<T,H>::Iterator Map<T,H>::find(const_Key& other)
 template<typename T,typename H>
 typename Map<T,H>::ConstIterator Map<T,H>::find(const_Key& other) const
 {
-    return ConstIterator(this->find(other));
+    Node *n  = this->root;
+    while(n!=nullptr)
+    {
+        if(n->pair_obj->first > other)
+        {
+            n = n->left;
+        }
+        else if(n->pair_obj->first < other)
+        {
+            n = n->right;
+        }
+        else if(n->pair_obj->first == other)
+        {
+            return (ConstIterator(n));
+        }
+    } 
+    return ConstIterator(this->tail);
 }
 template<typename T,typename H>
 typename Map<T,H>::Value& Map<T,H>::at(const_Key& other)
