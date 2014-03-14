@@ -1029,7 +1029,7 @@ void Map<T,H>::set_pointer_after_delete(Iterator i)
     assert(prev!=nullptr);
     prev->next_iter = current->next_iter;
     next->prev_iter = current->prev_iter;
-    delete_node(i.iter_node);
+    //delete_node(i.iter_node);
 }
 
 #endif//MAP_H_
