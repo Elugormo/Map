@@ -517,8 +517,8 @@ bool Map<T,H>::operator==(const Map<T,H>& other)const
     size_t count = this->size();
     while(count!=0)
     {
-        if(i.iter_node->pair_obj->first!=j.iter_node->pair_obj->first ||
-                i.iter_node->pair_obj->second!=i.iter_node->pair_obj->second)
+        if((i.iter_node->pair_obj->first==j.iter_node->pair_obj->first) == false ||
+                (i.iter_node->pair_obj->second==i.iter_node->pair_obj->second)==false)
         {
             //std::cout<<"FALSE\n";
             return false; 
@@ -564,7 +564,7 @@ typename Map<T,H>::ConstIterator Map<T,H>::find(const_Key& other) const
     Node *n  = this->root;
     while(n!=nullptr)
     {
-        if(n->pair_obj->first > other)
+        if(other< n->pair_obj->first )
         {
             n = n->left;
         }
