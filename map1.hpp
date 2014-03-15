@@ -542,7 +542,7 @@ typename Map<T,H>::Iterator Map<T,H>::find(const_Key& other)
     Node *n  = this->root;
     while(n!=nullptr)
     {
-        if(n->pair_obj->first > other)
+        if(other < n->pair_obj->first)
         {
             n = n->left;
         }
@@ -633,7 +633,7 @@ typename Map<T,H>::Node* Map<T,H>::find_position(Map::Node* n ,Key k)
         else
             return find_position(n->right,k);
     }
-    else if(n->pair_obj->first > k)
+    else if(k <n->pair_obj->first )
     {
         if(n->left == nullptr)
             return n;
@@ -688,7 +688,7 @@ typename Map<T,H>::Iterator Map<T,H>::insert_helper(Node *new_node)
             return Iterator(new_node);
 
         }
-        else if(n->pair_obj->first > new_node->pair_obj->first)
+        else if(new_node->pair_obj->first <  n->pair_obj->first )
         {   //add to left
             n->left = new_node;
             new_node->parent = n;
